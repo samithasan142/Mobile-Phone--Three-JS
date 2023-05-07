@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Mobile Phone</title>
+	<style>
+		body {
+			margin: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<script src="three.js"></script>
+	</script>
+	</script>
+	<script>
+		//Creating Render
+		const renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		document.body.appendChild(renderer.domElement);
+		scene = new THREE.Scene();
+
+		// Camera
+		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		camera.position.set(0, 1, 7);
+
+		// Loading Texture
+		var f1 = new THREE.TextureLoader().load("img/floor.jpg");
+		var wallpaper = new THREE.TextureLoader().load("img/sunset.jpg");
+		var t1 = new THREE.TextureLoader().load("img/upside.jpg");
+		var b1 = new THREE.TextureLoader().load("img/downside.jpg");
+		var s1 = new THREE.TextureLoader().load("img/side.jpg");
+		var b2 = new THREE.TextureLoader().load("img/backside.jpg");
+		var wallpaper1 = new THREE.TextureLoader().load("img/sunset2.jpg");
+		var wallpaper2 = new THREE.TextureLoader().load("img/wall2.jpg");
+		var wallpaper3 = new THREE.TextureLoader().load("img/sunset3.jpg");
+		var chargerpin = new THREE.TextureLoader().load("img/pin.jpg");
+		var background = new THREE.TextureLoader().load("img/background.jpg");
+
+
+
+		const bgGeometry = new THREE.BoxGeometry(150, 80, 0);
+
+
+		// Create a material for the background
+		const bgMaterial = new THREE.MeshBasicMaterial({
+			map: background
+		});
+
+		// Create a mesh for the background
+		const bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+
+		// Add the background mesh to the scene
+		scene.add(bgMesh);
+		bgMesh.position.set(0, 0, -30);
+
+		var temp = 1; // For Controlling Texture
+
+		// For showing back side of phone
+		backpanel = new THREE.Mesh(
+			new THREE.BoxGeometry(2, 4.7, 0.1),
+			new THREE.MeshPhongMaterial({
+				map: b2
+			})
+		);
+		scene.add(backpanel);
+		backpanel.position.set(0, 0, 0);
+
+		// For showing wallpaper of phone
+		front = new THREE.Mesh(
+			new THREE.BoxGeometry(2, 3.8, 0.1),
+			new THREE.MeshPhongMaterial({
+				map: wallpaper
+			})
+		);
+		front.name = "r0";
+		scene.add(front);
+		front.position.set(0, 0.1, 0.1);
+
+		// For showing top notch of phone
+		top1 = new THREE.Mesh(
+			new THREE.BoxGeometry(2, 0.5, 0.1),
+			new THREE.MeshPhongMaterial({
+				map: t1
+			})
+		);
+		top1.castShadow = true;
+		scene.add(top1);
+		top1.position.set(0, 2.1, 0.1);
+
+		// For showing back side 1
+		side1 = new THREE.Mesh(
+			new THREE.BoxGeometry(0.1, 4.7, 0.1),
+			new THREE.MeshPhongMaterial({
+				map: s1
+			})
+		);
+		side1.castShadow = true;
+		scene.add(side1);
+		side1.position.set(-1, 0.0, 0.1);
+
+		// For showing back side 2
+		side2 = new THREE.Mesh(
+			new THREE.BoxGeometry(0.1, 4.7, 0.1),
+			new THREE.MeshPhongMaterial({
+				map: s1
+			})
+		);
+		side2.castShadow = true;
+		scene.add(side2);
+		side2.position.set(1, 0.0, 0.1);
+
+
+
+		// For showing bottom side of phone
+		bot1 = new THREE.Mesh(
+			new THREE.BoxGeometry(2, 0.5, 0.1),
+			new THREE.MeshPhongMaterial({
+				map: b1
+			})
+		);
+		bot1.castShadow = true;
+		scene.add(bot1);
+		bot1.position.set(0, -2.1, 0.1);
+
+		// For showing area under the phone
+		floor = new THREE.Mesh(
+			new THREE.PlaneGeometry(50, 50),
+			new THREE.MeshPhongMaterial({
+				map: f1
+			})
+		);
+		floor.position.set(0, -2.3, 0.0);
+		floor.rotation.x -= Math.PI / 2;
+		scene.add(floor);
+
+		// For Ambient Light
+		ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+		scene.add(ambientLight);
+
+
+		// For Directional Light
+		const lights = [];
+		const numLights = 2;
+		for (let i = 0; i < numLights; i++) {
+			const light = new THREE.DirectionalLight(0xffffff, 1);
+			light.position.set(10, 0, 0);
+			lights.push(light);
+			scene.add(light);
+		}
+
+		const shadowMapSize = 512;
+		for (let i = 0; i < numLights; i++) {
+			const light = lights[i];
+			light.castShadow = true;
+			light.shadow.mapSize.width = shadowMapSize;
+			light.shadow.mapSize.height = shadowMapSize;
+			light.shadow.camera.position.set(0, 10, 0);
+			light.shadow.mapSize.width = 512;
+			light.shadow.mapSize.height = 512;
+			light.shadow.camera.near = 0.5;
+			light.shadow.camera.far = 500;
+		}
+
+		// Rotating directional Light
+		let time = 0;
+		function rotateLights() {
+			time += 0.01;
+			const radius = 10;
+			for (let i = 0; i < numLights; i++) {
+				const angle = i * (2 * Math.PI / numLights) + time;
+				const x = radius * Math.cos(angle);
+				const z = radius * Math.sin(angle);
+				lights[i].position.set(x, 2, z);
+			}
+		}
+
+		const keyStates = {};
+		window.addEventListener('keydown', (event) => {
+			keyStates[event.code] = true;
+		});
+		window.addEventListener('keyup', (event) => {
+			keyStates[event.code] = false;
+		});
+
+		function animate() {
+			setTimeout(function () {
+				requestAnimationFrame(animate);
+				var value = Date.now() * 0.001;
+				if (keyStates['KeyA']) {
+					camera.position.x = Math.cos(value) * 10;
+					camera.position.z = Math.sin(value) * 10;
+					camera.lookAt(scene.position);
+				}
+				if (keyStates['KeyD']) {
+					camera.position.x = Math.sin(value) * 10;
+					camera.position.z = Math.cos(value) * 10;
+					camera.lookAt(scene.position);
+				}
+				if (keyStates['KeyC']) {
+					temp = 2;
+					charger = new THREE.Mesh(
+						new THREE.BoxGeometry(0.5, 1, 0.1),
+						new THREE.MeshPhongMaterial({
+							map: chargerpin
+						})
+					);
+					charger.name = "r5";
+					scene.add(charger);
+					charger.position.set(0, -1.9, 0.1);
+					backpanel.position.set(0, 1, 0);
+					front.position.set(0, 1.1, 0.1);
+					top1.position.set(0, 3.1, 0.1);
+					side1.position.set(-1, 1.0, 0.1);
+					side2.position.set(1, 1.0, 0.1);
+					bot1.position.set(0, -1.1, 0.1);
+
+				}
+
+				if (keyStates['KeyV']) {
+					scene.remove(scene.getObjectByName('r5'));
+					temp = 1;
+					backpanel.position.set(0, 0, 0);
+					front.position.set(0, 0.1, 0.1);
+					top1.position.set(0, 2.1, 0.1);
+					side1.position.set(-1, 0.0, 0.1);
+					side2.position.set(1, 0.0, 0.1);
+					bot1.position.set(0, -2.1, 0.1);
+
+				}
+
+
+
+			}, 1000 / 100);
+			rotateLights();
+			renderer.render(scene, camera);
+		}
+
+		var click = 1;
+		let onmousedown = function () {
+
+			if (click < 5)
+				click += 1;
+			else
+				click = 1;
+
+			switch (click) {
+				case 1:
+					front = new THREE.Mesh(
+						new THREE.BoxGeometry(2, 3.8, 0.1),
+						new THREE.MeshPhongMaterial({
+							map: wallpaper
+						})
+					);
+					front.name = "r1";
+					scene.add(front);
+					if (temp == 1) {
+						front.position.set(0, 0.1, 0.1);
+						scene.remove(scene.getObjectByName('r5'));
+					}
+					if (temp == 2) {
+						front.position.set(0, 1.1, 0.1);
+					}
+					scene.remove(scene.getObjectByName('r0'));
+					scene.remove(scene.getObjectByName('r2'));
+					scene.remove(scene.getObjectByName('r3'));
+					scene.remove(scene.getObjectByName('r4'));
+					break;
+				case 2:
+					front = new THREE.Mesh(
+						new THREE.BoxGeometry(2, 3.8, 0.1),
+						new THREE.MeshPhongMaterial({
+							map: wallpaper1
+						})
+					);
+					front.name = "r2";
+					scene.add(front);
+					if (temp == 1) {
+						front.position.set(0, 0.1, 0.1);
+						scene.remove(scene.getObjectByName('r5'));
+					}
+					if (temp == 2) {
+						front.position.set(0, 1.1, 0.1);
+					}
+					scene.remove(scene.getObjectByName('r1'));
+					scene.remove(scene.getObjectByName('r3'));
+					scene.remove(scene.getObjectByName('r4'));
+					scene.remove(scene.getObjectByName('r0'));
+					break;
+				case 3:
+					front = new THREE.Mesh(
+						new THREE.BoxGeometry(2, 3.8, 0.1),
+						new THREE.MeshPhongMaterial({
+							map: wallpaper2
+						})
+					);
+					front.name = "r3";
+					scene.add(front);
+					if (temp == 1) {
+						front.position.set(0, 0.1, 0.1);
+						scene.remove(scene.getObjectByName('r5'));
+					}
+					if (temp == 2) {
+						front.position.set(0, 1.1, 0.1);
+					}
+					scene.remove(scene.getObjectByName('r2'));
+					scene.remove(scene.getObjectByName('r1'));
+					scene.remove(scene.getObjectByName('r4'));
+					scene.remove(scene.getObjectByName('r0'));
+					break;
+				case 4:
+					front = new THREE.Mesh(
+						new THREE.BoxGeometry(2, 3.8, 0.1),
+						new THREE.MeshPhongMaterial({
+							map: wallpaper3
+						})
+					);
+					front.name = "r4";
+					scene.add(front);
+					if (temp == 1) {
+						front.position.set(0, 0.1, 0.1);
+						scene.remove(scene.getObjectByName('r5'));
+					}
+					if (temp == 2) {
+						front.position.set(0, 1.1, 0.1);
+					}
+					scene.remove(scene.getObjectByName('r2'));
+					scene.remove(scene.getObjectByName('r3'));
+					scene.remove(scene.getObjectByName('r1'));
+					scene.remove(scene.getObjectByName('r0'));
+					break;
+
+
+
+				default:
+			}
+		}
+
+		document.addEventListener("click", onmousedown, false);
+		animate();
+
+	</script>
+</body>
+
+</html>
